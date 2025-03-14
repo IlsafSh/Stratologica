@@ -1,11 +1,10 @@
-import sys
-from PyQt6 import QtWidgets
+import tkinter as tk
+from gui.main_window import MainWindow
 
-app = QtWidgets.QApplication(sys.argv)
+def main():
+    root = tk.Tk()
+    app = MainWindow(root)
+    root.mainloop()
 
-window = QtWidgets.QWidget()
-window.resize(300, 200)
-window.setWindowTitle('Hello, World!')
-
-window.show()
-sys.exit(app.exec())
+if __name__ == "__main__":
+    main()
