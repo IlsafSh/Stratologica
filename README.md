@@ -40,5 +40,19 @@ python -m pytest tests/
 - `gui/` - модуль с графическим интерфейсом
 - `tests/` - модульные тесты
 
+## Сборка и запуск приложения
 
+1. Перейдите в директорию с программой (Stratologica)
+2. Запустите:
+```bash
+pyinstaller --onefile --windowed --name "stratologica" --add-data "assets;assets" main.py
+```
+3. Затем:
+```bash
+cp .\assets\ .\dist\ 
+```
+4. Для запуска собранного приложения можете использовать команду:
+```bash
+.\dist\stratologica.exe 
+```
 
