@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from algs import generate_random_matrix
 
 class MatrixInputWindow:
     def __init__(self, root, matrix, save_callback):
@@ -38,10 +39,43 @@ class MatrixInputWindow:
         tk.Button(self.window, text="Применить", command=self.apply_changes).grid(row=self.rows + 1, column=0, columnspan=self.cols, sticky="ew")
 
     def show(self):
-        """Обновление отображения"""
-        for widget in self.window.winfo_children():
-            widget.grid_forget()
-        self.create_widgets()
+        """Отображение окна ввода матрицы"""
+        # Если окно уже существует и не закрыто, перерисовываем элементы
+        if hasattr(self, 'window') and self.window.winfo_exists():
+            # Очистить старые записи, если они есть
+            for widget in self.window.winfo_children():
+                widget.grid_forget()
+        else:
+            # Если окно закрыто, создаем новое окно
+            self.window = tk.Toplevel(self.root)
+            self.window.title("Создание/Редактирование матрицы")
+
+        self.entries = []  # Очищаем список для новых записей
+
+        # Создание новой таблицы для ввода
+        for i in range(self.rows):
+            row_entries = []
+            for j in range(self.cols):
+                entry = tk.Entry(self.window, width=8)
+                entry.grid(row=i, column=j, padx=5, pady=5)
+                entry.insert(tk.END, str(self.matrix[i][j]))  # Заполнить текущими значениями
+                row_entries.append(entry)
+            self.entries.append(row_entries)
+
+        # Кнопки добавления строк и столбцов
+        self.add_row_button = tk.Button(self.window, text="Добавить строку", command=self.add_row)
+        self.add_row_button.grid(row=self.rows, column=0, columnspan=self.cols//2, sticky="ew")
+
+        self.add_col_button = tk.Button(self.window, text="Добавить столбец", command=self.add_col)
+        self.add_col_button.grid(row=self.rows, column=self.cols//2, columnspan=self.cols//2, sticky="ew")
+
+        # Кнопка генерации случайной матрицы
+        self.generate_button = tk.Button(self.window, text="Сгенерировать случайную матрицу", command=self.generate_random)
+        self.generate_button.grid(row=self.rows + 1, column=0, columnspan=self.cols, sticky="ew")
+
+        # Кнопка "Применить"
+        self.apply_button = tk.Button(self.window, text="Применить", command=self.apply_changes)
+        self.apply_button.grid(row=self.rows + 2, column=0, columnspan=self.cols, sticky="ew")
 
     def add_row(self):
         """Добавление строки (максимум 10)"""
@@ -74,3 +108,15 @@ class MatrixInputWindow:
                     return
         self.save_callback(self.matrix)  # Передача в MainWindow
         self.window.destroy()
+
+    def generate_random(self):
+        """Генерация случайной матрицы с текущими размерами"""
+        try:
+            self.matrix = generate_random_matrix(self.rows, self.cols)
+            for i in range(self.rows):
+                for j in range(self.cols):
+                    if self.entries[i][j].winfo_exists():
+                        self.entries[i][j].delete(0, tk.END)
+                        self.entries[i][j].insert(0, str(self.matrix[i][j]))
+        except Exception as e:
+            messagebox.showerror("Ошибка", f"Не удалось сгенерировать матрицу: {str(e)}")
