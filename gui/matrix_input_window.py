@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from tkinter import messagebox
+from algs import generate_random_matrix
 
 class MatrixInputWindow:
     def __init__(self, root, matrix):
@@ -19,14 +20,18 @@ class MatrixInputWindow:
 
         # Кнопки для добавления строк и столбцов, с ограничениями
         self.add_row_button = tk.Button(self.window, text="Добавить строку", command=self.add_row)
-        self.add_row_button.grid(row=self.rows, column=0, columnspan=self.cols, sticky="ew")
+        self.add_row_button.grid(row=self.rows, column=0, columnspan=self.cols//2, sticky="ew")
 
         self.add_col_button = tk.Button(self.window, text="Добавить столбец", command=self.add_col)
-        self.add_col_button.grid(row=0, column=self.cols, sticky="ns")
+        self.add_col_button.grid(row=self.rows, column=self.cols//2, columnspan=self.cols//2, sticky="ew")
+
+        # Кнопка для генерации случайной матрицы
+        self.generate_button = tk.Button(self.window, text="Сгенерировать случайную матрицу", command=self.generate_random)
+        self.generate_button.grid(row=self.rows + 1, column=0, columnspan=self.cols, sticky="ew")
 
         # Кнопка для применения изменений
         self.apply_button = tk.Button(self.window, text="Применить", command=self.apply_changes)
-        self.apply_button.grid(row=self.rows + 1, column=0, columnspan=self.cols, sticky="ew")
+        self.apply_button.grid(row=self.rows + 2, column=0, columnspan=self.cols, sticky="ew")
 
         # Отображение матрицы в виде таблицы
         self.show()
@@ -57,11 +62,19 @@ class MatrixInputWindow:
             self.entries.append(row_entries)
 
         # Кнопки добавления строк и столбцов
-        self.add_row_button.grid(row=self.rows, column=0, columnspan=self.cols, sticky="ew")
-        self.add_col_button.grid(row=0, column=self.cols, sticky="ns")
+        self.add_row_button.grid(row=self.rows, column=0, columnspan=self.cols//2, sticky="ew")
+        self.add_col_button.grid(row=self.rows, column=self.cols//2, columnspan=self.cols//2, sticky="ew")
+
+        # Кнопка генерации случайной матрицы
+        self.generate_button.grid(row=self.rows + 1, column=0, columnspan=self.cols, sticky="ew")
 
         # Кнопка "Применить"
-        self.apply_button.grid(row=self.rows + 1, column=0, columnspan=self.cols, sticky="ew")
+        self.apply_button.grid(row=self.rows + 2, column=0, columnspan=self.cols, sticky="ew")
+
+    def generate_random(self):
+        """Генерация случайной матрицы с текущими размерами"""
+        self.matrix = generate_random_matrix(self.rows, self.cols)
+        self.show()  # Обновляем отображение с новыми значениями
 
     def add_row(self):
         """Добавить новую строку, если количество строк меньше 10"""
