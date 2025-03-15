@@ -14,6 +14,8 @@ class MainWindow:
         self.root.title("Решение матричных теоретико-игровых моделей")
         self.root.geometry("600x400")
 
+        self.matrix_data = None  # Хранение текущей матрицы
+
         # Главное меню
         self.menu_bar = Menu(self.root)
         self.root.config(menu=self.menu_bar)
@@ -25,10 +27,10 @@ class MainWindow:
         self.menu_bar.add_cascade(label="Файл", menu=self.file_menu)
 
         # Меню "Модель"
-        self.model_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.model_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Модель", menu=self.model_menu)
         self.model_menu.add_command(label="Создать матрицу", command=self.create_new_matrix)
-        self.model_menu.add_command(label="Просмотреть матрицу", command=self.see_matrix)
+        self.model_menu.add_command(label="Редактировать матрицу", command=self.edit_matrix)
 
         # Меню "Алгоритмы"
         self.algorithms_menu = Menu(self.menu_bar, tearoff=0)
@@ -38,56 +40,70 @@ class MainWindow:
         self.menu_bar.add_cascade(label="Алгоритмы", menu=self.algorithms_menu)
 
         # Меню "Помощь"
-        self.help_menu = tk.Menu(self.menu_bar, tearoff=0)
+        self.help_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Помощь", menu=self.help_menu)
         self.help_menu.add_command(label="Описание функционала", command=self.show_help)
 
-        # Надпись о состоянии
+        # Статус
         self.status_label = tk.Label(self.root, text="Готово к работе", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_label.pack(fill=tk.X, side=tk.BOTTOM)
 
     def load_matrix(self):
-        """Загрузка матрицы из файла"""
+        """Загрузка матрицы"""
         matrix = load_matrix_from_file(self.root)
         if matrix is not None:
-            self.open_matrix_window(matrix)
-
-    def open_matrix_window(self, matrix):
-        """Открытие окна с матрицей"""
-        self.matrix_window = MatrixInputWindow(self.root, matrix=matrix)
-        self.matrix_window.show()
+            self.matrix_data = matrix
+            show_info("Успех", "Матрица загружена")
 
     def save_matrix(self):
-        """Сохранение матрицы в файл"""
-        if hasattr(self, "matrix_window") and self.matrix_window:
-            save_matrix_to_file(self.matrix_window.get_matrix(), self.root)
+        """Сохранение матрицы"""
+        if self.matrix_data is not None:
+            save_matrix_to_file(self.matrix_data, self.root)
         else:
-            show_error("Ошибка", "Нет открытой матрицы для сохранения.")
+            show_error("Ошибка", "Нет матрицы для сохранения")
 
     def create_new_matrix(self):
-        """Создание новой матрицы 2x2 с помощью окна ввода"""
-        self.matrix_window = MatrixInputWindow(self.root, matrix=[[0, 0], [0, 0]])  # Изначально 2x2
-        self.matrix_window.show()
+        """Создание новой матрицы 2x2"""
+        self.open_matrix_window([[0, 0], [0, 0]])
 
-    def see_matrix(self):
+    def edit_matrix(self):
         """Просмотр текущей матрицы"""
-        if hasattr(self, "matrix_window") and self.matrix_window:
-            # Если матрица уже существует, показываем окно просмотра с текущими значениями
-            self.matrix_window.show()
+        if self.matrix_data is not None:
+            self.open_matrix_window(self.matrix_data)
         else:
-            show_error("Ошибка", "Нет матрицы для редактирования.")
+            show_error("Ошибка", "Нет матрицы для просмотра")
+
+    def open_matrix_window(self, matrix):
+        """Создание окна ввода матрицы"""
+        MatrixInputWindow(self.root, matrix, self.save_matrix_data)
+
+    def save_matrix_data(self, matrix):
+        """Сохранение изменений после редактирования"""
+        self.matrix_data = matrix
 
     def run_minimax(self):
         # Алгоритм минимакс/максимин
-        pass
+        if self.matrix_data is None:
+            show_error("Ошибка", "Нет матрицы для анализа")
+            return
+        result = find_minimax(self.matrix_data)
+        show_info("Результат", f"Минимаксное значение: {result}")
 
     def run_nash_pure(self):
         # Алгоритм поиска равновесия по Нэшу в чистых стратегиях
-        pass
+        if self.matrix_data is None:
+            show_error("Ошибка", "Нет матрицы для анализа")
+            return
+        result = find_nash_pure(self.matrix_data)
+        show_info("Результат", f"Равновесие Нэша: {result}")
 
     def run_nash_mixed(self):
         # Алгоритм поиска равновесия по Нэшу в смешанных стратегиях
-        pass
+        if self.matrix_data is None:
+            show_error("Ошибка", "Нет матрицы для анализа")
+            return
+        result = find_nash_mixed(self.matrix_data)
+        show_info("Результат", f"Смешанные стратегии: {result}")
 
     def show_help(self):
         help_text = (
