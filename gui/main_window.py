@@ -49,27 +49,8 @@ class MainWindow:
         # Меню "Помощь"
         self.help_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Помощь", menu=self.help_menu)
+        self.help_menu.add_command(label="Руководство", command=self.show_guide)
         self.help_menu.add_command(label="Описание функционала", command=self.show_help)
-
-        # Приветственное сообщение
-        welcome_text = (
-            'Добро пожаловать в Стратологику!\n'
-            'Для начала работы:\n'
-            '1. Создайте новую матрицу через меню "Модель" -> "Создать матрицу"\n'
-            '2. Введите значения в матрицу\n'
-            '3. Используйте алгоритмы из меню "Алгоритмы" для анализа\n'
-            '4. Доступны операции с файлами .txt, .xlsx\n'
-        )
-
-        self.welcome_label = tk.Label(
-            self.root,
-            text=welcome_text,
-            justify=tk.LEFT,
-            font=("Times New Roman", 12),
-            padx=20,
-            pady=20
-        )
-        self.welcome_label.pack(fill=tk.X)
 
         try:
             image = Image.open("assets/cat.jpeg")
@@ -216,13 +197,26 @@ class MainWindow:
     def show_help(self):
         help_text = (
             "Описание функционала:\n"
-            "- Загрузка и выгрузка матриц из файлов.\n"
-            "- Создание матриц вручную.\n"
+            "- Загрузка и выгрузка матриц из файлов\n"
+            "- Создание матриц вручную\n"
             "- Применение различных алгоритмов теории игр:\n"
-            "  - Алгоритм минимакса.\n"
-            "  - Поиск равновесий Нэша в чистых и смешанных стратегиях.\n"
+            "  - Алгоритм минимакса\n"
+            "  - Поиск равновесий Нэша в чистых и смешанных стратегиях\n"
         )
         show_info("Помощь", help_text)
+
+    def show_guide(self):
+        # Приветственное сообщение
+        welcome_text = (
+            'Добро пожаловать в Стратологику!\n'
+            '\nДля начала работы:\n'
+            '1. Создайте новую матрицу через меню "Модель" -> "Создать матрицу"\n'
+            '2. Введите значения в матрицу\n'
+            '3. Используйте алгоритмы из меню "Алгоритмы" для анализа\n'
+            '4. Доступны операции с файлами .txt, .xlsx\n'
+        )
+
+        show_info("Руководство", welcome_text)
 
 # Определяем путь к папке assets
 def get_assets_path(filename=""):
