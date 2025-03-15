@@ -1,9 +1,9 @@
 # Главное окно приложения
 
+import os
 import tkinter as tk
 from tkinter import Menu
 from PIL import Image, ImageTk
-import os
 from gui.matrix_input_window import MatrixInputWindow
 from gui.message_boxes import show_error, show_info
 from gui.file_operations import load_matrix_from_file, save_matrix_to_file
@@ -15,7 +15,9 @@ class MainWindow:
     def __init__(self, root):
         self.root = root
         self.root.title("Решение матричных теоретико-игровых моделей")
-        self.root.geometry("600x500")  # Увеличим высоту окна для размещения всех элементов
+        self.root.geometry("650x650")  # Размеры главного окна
+
+        self.matrix_data = None     # Хранение текущей модели
 
         # Главное меню
         self.menu_bar = Menu(self.root)
@@ -23,8 +25,8 @@ class MainWindow:
 
         # Меню "Файл"
         self.file_menu = Menu(self.menu_bar, tearoff=0)
-        self.file_menu.add_command(label="Загрузить из файла", command=self.load_matrix)
-        self.file_menu.add_command(label="Выгрузить в файл", command=self.save_matrix)
+        self.file_menu.add_command(label="Загрузить модель из файла", command=self.load_matrix)
+        self.file_menu.add_command(label="Выгрузить модель в файл", command=self.save_matrix)
         self.menu_bar.add_cascade(label="Файл", menu=self.file_menu)
 
         # Меню "Модель"
@@ -46,29 +48,27 @@ class MainWindow:
         self.help_menu.add_command(label="Описание функционала", command=self.show_help)
 
         # Приветственное сообщение
-        welcome_text = """Добро пожаловать в Стратологику!
-
-Для начала работы:
-1. Создайте новую матрицу через меню "Модель" -> "Создать матрицу"
-2. Введите значения в матрицу
-3. Используйте алгоритмы из меню "Алгоритмы" для анализа
-4. Доступны операции в файлами
-
-"""
+        welcome_text = (
+            'Добро пожаловать в Стратологику!\n'
+            'Для начала работы:\n'
+            '1. Создайте новую матрицу через меню "Модель" -> "Создать матрицу"\n'
+            '2. Введите значения в матрицу\n'
+            '3. Используйте алгоритмы из меню "Алгоритмы" для анализа\n'
+            '4. Доступны операции с файлами .txt, .xlsx\n'
+        )
         
         self.welcome_label = tk.Label(
             self.root,
             text=welcome_text,
             justify=tk.LEFT,
-            font=("Arial", 12),
+            font=("Times New Roman", 12),
             padx=20,
             pady=20
         )
         self.welcome_label.pack(fill=tk.X)
 
         try:
-           
-            image = Image.open("cat.jpeg")
+            image = Image.open("assets/cat.jpeg")
             
             basewidth = 300
             wpercent = (basewidth / float(image.size[0]))
@@ -81,6 +81,7 @@ class MainWindow:
         except Exception as e:
             print(f"Ошибка при загрузке изображения: {e}")
 
+        # Статус
         self.status_label = tk.Label(self.root, text="Готово к работе", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_label.pack(fill=tk.X, side=tk.BOTTOM)
 
@@ -96,7 +97,7 @@ class MainWindow:
         if self.matrix_data is not None:
             save_matrix_to_file(self.matrix_data, self.root)
         else:
-            show_error("Ошибка", "Нет матрицы для сохранения")
+            show_error("Ошибка", "Сначала создайте или загрузите матрицу")
 
     def create_new_matrix(self):
         """Создание новой матрицы 2x2"""
@@ -107,7 +108,7 @@ class MainWindow:
         if self.matrix_data is not None:
             self.open_matrix_window(self.matrix_data)
         else:
-            show_error("Ошибка", "Нет матрицы для просмотра")
+            show_error("Ошибка", "Сначала создайте или загрузите матрицу")
 
     def open_matrix_window(self, matrix):
         """Создание окна ввода матрицы"""
@@ -131,20 +132,25 @@ class MainWindow:
             return
             
         matrix = self.matrix_data
-        maximin = find_maxmin(matrix)
-        minimax = find_minmax(matrix)
-        
-        result_text = (
-            f"Результаты анализа:\n\n"
-            f"Максимин (гарантированный выигрыш первого игрока): {maximin}\n"
-            f"Минимакс (гарантированный проигрыш второго игрока): {minimax}\n"
-        )
-        
-        if maximin == minimax:
-            result_text += f"\nНайдена седловая точка со значением {maximin}"
-        else:
-            result_text += "\nСедловая точка отсутствует"
-            
+
+        try:
+            maximin = find_maxmin(matrix)
+            minimax = find_minmax(matrix)
+
+            result_text = (
+                f"Результаты анализа:\n\n"
+                f"Максимин (гарантированный выигрыш первого игрока): {maximin}\n"
+                f"Минимакс (гарантированный проигрыш второго игрока): {minimax}\n"
+            )
+
+            if maximin == minimax:
+                result_text += f"\nНайдена седловая точка со значением {maximin}"
+            else:
+                result_text += "\nСедловая точка отсутствует"
+
+        except Exception as e:
+            result_text = f"Ошибка при поиске максимина/минимакса: {str(e)}"
+
         show_info("Результаты", result_text)
 
     def run_nash_pure(self):
@@ -154,18 +160,23 @@ class MainWindow:
             return
             
         matrix = self.matrix_data
-        nash_equilibria = nash_clear(matrix)
-        
-        if nash_equilibria:
-            result_text = "Найдены следующие равновесия в чистых стратегиях:\n\n"
-            for i, (row, col) in enumerate(nash_equilibria, 1):
-                result_text += f"Равновесие {i}:\n"
-                result_text += f"Первый игрок: стратегия {row}\n"
-                result_text += f"Второй игрок: стратегия {col}\n"
-                result_text += f"Значение: {matrix[row-1][col-1]}\n\n"
-        else:
-            result_text = "Равновесий в чистых стратегиях не найдено"
-            
+
+        try:
+            nash_equilibria = nash_clear(matrix)
+
+            if nash_equilibria:
+                result_text = "Найдены следующие равновесия в чистых стратегиях:\n\n"
+                for i, (row, col) in enumerate(nash_equilibria, 1):
+                    result_text += f"Равновесие {i}:\n"
+                    result_text += f"Первый игрок: стратегия {row}\n"
+                    result_text += f"Второй игрок: стратегия {col}\n"
+                    result_text += f"Значение: {matrix[row-1][col-1]}\n\n"
+            else:
+                result_text = "Равновесий в чистых стратегиях не найдено"
+
+        except Exception as e:
+            result_text = f"Ошибка при поиске равновесия: {str(e)}"
+
         show_info("Результаты", result_text)
 
     def run_nash_mixed(self):
@@ -175,7 +186,6 @@ class MainWindow:
             return
             
         matrix = self.matrix_data
-        
      
         if len(matrix) != 2 or len(matrix[0]) != 2:
             show_error("Ошибка", "Для поиска смешанных стратегий необходима матрица 2x2")

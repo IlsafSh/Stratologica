@@ -5,7 +5,7 @@ from algs.maximin import find_maxmin
 from algs.minimax import find_minmax
 
 def nash_clear(matrix):
-    """Поиск равновесий по нешу в чистых стратегиях
+    """Поиск равновесий по Нэшу в чистых стратегиях
 
     Args:
         matrix (list): матрица в виде списка списков

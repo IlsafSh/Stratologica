@@ -3,5 +3,19 @@
 import numpy as np
 
 def find_minmax(matrix):
-    max_in_rows = np.max(matrix, axis=0)
-    return min(max_in_rows)
+    """Поиск минимакса (гарантированного проигрыша второго игрока)
+
+        Args:
+            matrix (list): матрица в виде списка списков
+
+        Returns:
+            float: значение минимакса
+        """
+    # Преобразуем входную матрицу в numpy array для удобства вычислений
+    matrix = np.array(matrix)
+
+    # Находим максимумы по столбцам (для каждой стратегии второго игрока)
+    max_in_columns = np.max(matrix, axis=0)
+
+    # Находим минимум среди максимумов (оптимальная стратегия второго игрока)
+    return min(max_in_columns)
