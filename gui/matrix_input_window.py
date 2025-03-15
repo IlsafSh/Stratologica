@@ -39,7 +39,7 @@ class MatrixInputWindow:
         tk.Button(self.window, text="Применить", command=self.apply_changes).grid(row=self.rows + 1, column=0, columnspan=self.cols, sticky="ew")
 
     def show(self):
-        """Отображение окна ввода матрицы"""
+        """Обнолвение отображения """
         # Если окно уже существует и не закрыто, перерисовываем элементы
         if hasattr(self, 'window') and self.window.winfo_exists():
             # Очистить старые записи, если они есть

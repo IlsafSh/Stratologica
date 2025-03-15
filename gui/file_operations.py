@@ -18,14 +18,22 @@ def load_matrix_from_file(root):
     try:
         if file_path.endswith(".txt"):
             with open(file_path, "r", encoding="utf-8") as file:
-                reader = csv.reader(file, delimiter=' ')
-                matrix = [[float(value) for value in row] for row in reader]
+                matrix = []
+                for line in file:
+                    # Разбиваем строку по табуляции и преобразуем в числа
+                    row = [float(x.strip()) for x in line.strip().split('\t') if x.strip()]
+                    if row:  # Добавляем только непустые строки
+                        matrix.append(row)
 
         elif file_path.endswith(".xlsx"):
             wb = openpyxl.load_workbook(file_path)
             sheet = wb.active
             matrix = [[cell.value for cell in row] for row in sheet.iter_rows()]
             matrix = [[0 if value is None else float(value) for value in row] for row in matrix]  # Заменяем None на 0
+
+        # Проверяем, что все строки имеют одинаковую длину
+        if matrix and not all(len(row) == len(matrix[0]) for row in matrix):
+            raise ValueError("Некорректный формат матрицы: строки разной длины")
 
         messagebox.showinfo("Успех", "Файл успешно загружен.")
         return matrix
@@ -49,9 +57,9 @@ def save_matrix_to_file(matrix, root):
     try:
         if file_path.endswith(".txt"):
             with open(file_path, "w", encoding="utf-8") as file:
-                writer = csv.writer(file, delimiter=' ')
                 for row in matrix:
-                    writer.writerow(row)
+                    # Используем табуляцию как разделитель
+                    file.write('\t'.join(str(x) for x in row) + '\n')
 
         elif file_path.endswith(".xlsx"):
             wb = openpyxl.Workbook()
