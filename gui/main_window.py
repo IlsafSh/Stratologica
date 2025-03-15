@@ -1,5 +1,6 @@
 # Главное окно приложения
 
+import sys
 import os
 import tkinter as tk
 from tkinter import Menu
@@ -15,7 +16,10 @@ class MainWindow:
     def __init__(self, root):
         self.root = root
         self.root.title("Решение матричных теоретико-игровых моделей")
-        self.root.geometry("650x650")  # Размеры главного окна
+        self.root.geometry("800x500")  # Размеры главного окна
+
+        # Карусель изображений
+        self.carousel = ImageCarousel(root, "assets")
 
         self.matrix_data = None     # Хранение текущей модели
 
@@ -56,7 +60,7 @@ class MainWindow:
             '3. Используйте алгоритмы из меню "Алгоритмы" для анализа\n'
             '4. Доступны операции с файлами .txt, .xlsx\n'
         )
-        
+
         self.welcome_label = tk.Label(
             self.root,
             text=welcome_text,
@@ -69,12 +73,12 @@ class MainWindow:
 
         try:
             image = Image.open("assets/cat.jpeg")
-            
+
             basewidth = 300
             wpercent = (basewidth / float(image.size[0]))
             hsize = int((float(image.size[1]) * float(wpercent)))
             image = image.resize((basewidth, hsize), Image.Resampling.LANCZOS)
-            
+
             self.cat_photo = ImageTk.PhotoImage(image)
             self.cat_label = tk.Label(self.root, image=self.cat_photo)
             self.cat_label.pack(pady=10)
@@ -130,7 +134,7 @@ class MainWindow:
         if not hasattr(self, "matrix_data") or self.matrix_data is None:
             show_error("Ошибка", "Сначала создайте или загрузите матрицу")
             return
-            
+
         matrix = self.matrix_data
 
         try:
@@ -158,7 +162,7 @@ class MainWindow:
         if not hasattr(self, "matrix_data") or self.matrix_data is None:
             show_error("Ошибка", "Сначала создайте или загрузите матрицу")
             return
-            
+
         matrix = self.matrix_data
 
         try:
@@ -184,29 +188,29 @@ class MainWindow:
         if not hasattr(self, "matrix_data") or self.matrix_data is None:
             show_error("Ошибка", "Сначала создайте или загрузите матрицу")
             return
-            
+
         matrix = self.matrix_data
-     
+
         if len(matrix) != 2 or len(matrix[0]) != 2:
             show_error("Ошибка", "Для поиска смешанных стратегий необходима матрица 2x2")
             return
-            
+
         try:
             strategies = nash_mixed(matrix)
             p1_probs, p2_probs = strategies
-            
+
             result_text = "Найдено равновесие в смешанных стратегиях:\n\n"
             result_text += "Первый игрок:\n"
             for i, prob in enumerate(p1_probs, 1):
                 result_text += f"Стратегия {i}: {prob:.3f}\n"
-                
+
             result_text += "\nВторой игрок:\n"
             for i, prob in enumerate(p2_probs, 1):
                 result_text += f"Стратегия {i}: {prob:.3f}\n"
-                
+
         except Exception as e:
             result_text = f"Ошибка при поиске равновесия: {str(e)}"
-            
+
         show_info("Результаты", result_text)
 
     def show_help(self):
@@ -219,3 +223,61 @@ class MainWindow:
             "  - Поиск равновесий Нэша в чистых и смешанных стратегиях.\n"
         )
         show_info("Помощь", help_text)
+
+# Определяем путь к папке assets
+def get_assets_path(filename=""):
+    """Возвращает путь к файлу внутри папки assets"""
+    if getattr(sys, 'frozen', False):
+        # Если приложение запущено из .exe
+        base_path = sys._MEIPASS
+    else:
+        # Если запущено в режиме отладки (из Python)
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, "assets", filename)
+
+class ImageCarousel:
+    def __init__(self, parent, image_folder, interval=10000):
+        self.parent = parent
+        self.image_folder = image_folder
+        self.image_files = [f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+        if not self.image_files:
+            raise ValueError("В папке assets нет изображений.")
+
+        self.current_index = 0
+        self.interval = interval
+        self.image_label = tk.Label(parent)
+        self.image_label.pack(expand=True, fill=tk.BOTH)
+        self.prev_button = tk.Button(parent, text="◀", command=self.prev_image)
+        self.prev_button.place(relx=0.02, rely=0.5, anchor=tk.CENTER)
+        self.next_button = tk.Button(parent, text="▶", command=self.next_image)
+        self.next_button.place(relx=0.98, rely=0.5, anchor=tk.CENTER)
+        self.parent.bind("<Configure>", self.resize_image)
+        self.load_image()
+        self.start_auto_scroll()
+
+    def load_image(self):
+        image_path = get_assets_path(self.image_files[self.current_index])
+        self.original_image = Image.open(image_path)
+        self.resize_image()
+
+    def resize_image(self, event=None):
+        width = self.parent.winfo_width()
+        height = self.parent.winfo_height()
+        if width > 1 and height > 1:
+            resized_image = self.original_image.resize((width, height), Image.Resampling.LANCZOS)
+            self.tk_image = ImageTk.PhotoImage(resized_image)
+            self.image_label.config(image=self.tk_image)
+
+    def next_image(self):
+        self.current_index = (self.current_index + 1) % len(self.image_files)
+        self.load_image()
+
+    def prev_image(self):
+        self.current_index = (self.current_index - 1) % len(self.image_files)
+        self.load_image()
+
+    def start_auto_scroll(self):
+        self.next_image()
+        self.parent.after(self.interval, self.start_auto_scroll)
