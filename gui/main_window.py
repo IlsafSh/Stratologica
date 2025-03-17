@@ -19,11 +19,9 @@ class MainWindow:
         self.root.title("Решение матричных теоретико-игровых моделей")
         self.root.geometry("800x500")  # Размеры главного окна
 
-        # Карусель изображений
-        self.carousel = ImageCarousel(root, "assets")
-
         # Инициализация данных
         self.matrix_data = None     # Хранение текущей модели
+        # Инициализация ML-модели
         self.strategy_predictor = StrategyPredictor()
         self.game_history = []  # История игр для обучения
 
@@ -32,12 +30,6 @@ class MainWindow:
         self.root.config(menu=self.menu_bar)
          # Карусель изображений
         self.carousel = ImageCarousel(root, "assets")
-
-        self.matrix_data = None   
-        
-        # Инициализация ML-модели
-        self.strategy_predictor = StrategyPredictor()
-        self.game_history = []  # 
 
         # Меню "Файл"
         self.file_menu = Menu(self.menu_bar, tearoff=0)
@@ -58,7 +50,7 @@ class MainWindow:
         self.algorithms_menu.add_command(label="Поиск равновесия Нэша (смешанные стратегии 2x2)", command=self.run_nash_mixed)
         self.menu_bar.add_cascade(label="Алгоритмы", menu=self.algorithms_menu)
 
-        # Добавляем меню ML-анализа
+        # Меню ML-анализа
         self.ml_menu = Menu(self.menu_bar, tearoff=0)
         self.ml_menu.add_command(label="Анализ паттернов матрицы", command=self.analyze_patterns)
         self.ml_menu.add_command(label="Предложить стратегию", command=self.get_strategy_suggestion)
@@ -70,24 +62,6 @@ class MainWindow:
         self.menu_bar.add_cascade(label="Помощь", menu=self.help_menu)
         self.help_menu.add_command(label="Руководство", command=self.show_guide)
         self.help_menu.add_command(label="Описание функционала", command=self.show_help)
-
-        try:
-            image = Image.open("assets/cat.jpeg")
-
-            basewidth = 300
-            wpercent = (basewidth / float(image.size[0]))
-            hsize = int((float(image.size[1]) * float(wpercent)))
-            image = image.resize((basewidth, hsize), Image.Resampling.LANCZOS)
-
-            self.cat_photo = ImageTk.PhotoImage(image)
-            self.cat_label = tk.Label(self.root, image=self.cat_photo)
-            self.cat_label.pack(pady=10)
-        except Exception as e:
-            print(f"Ошибка при загрузке изображения: {e}")
-
-        # Статус
-        self.status_label = tk.Label(self.root, text="Готово к работе", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.status_label.pack(fill=tk.X, side=tk.BOTTOM)
 
     def load_matrix(self):
         """Загрузка матрицы"""
